@@ -3,4 +3,6 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="bg_color_profile_images_pane">#E0E0E0</color>
+    <color name="bg_color_info_pane">#FAFAFA</color>
 </resources>

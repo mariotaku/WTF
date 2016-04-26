@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/element_spacing_normal">
+
+    <com.makeramen.roundedimageview.RoundedImageView
+        android:id="@+id/profile_image"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        app:riv_oval="true"
+        tools:src="@drawable/ic_profile_image_sample"/>
+
+    <org.mariotaku.wtf.view.NameView
+        android:id="@+id/name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/element_spacing_normal"
+        android:layout_marginStart="@dimen/element_spacing_normal"
+        android:layout_toEndOf="@+id/profile_image"
+        android:layout_toLeftOf="@+id/time"
+        android:layout_toRightOf="@+id/profile_image"
+        android:layout_toStartOf="@+id/time"
+        app:nv_primaryTextColor="?android:textColorPrimary"
+        app:nv_primaryTextStyle="bold"
+        app:nv_secondaryTextColor="?android:textColorSecondary"
+        app:nv_secondaryTextSize="@dimen/text_size_xsmall"
+        app:nv_twoLine="false"/>
+
+    <org.mariotaku.wtf.view.ShortTimeView
+        android:id="@+id/time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/name"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:textAppearance="?android:textAppearanceSmall"
+        android:textSize="@dimen/text_size_xsmall"
+        tools:text="just now"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/name"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignStart="@+id/name"
+        android:layout_below="@+id/name"
+        android:layout_marginTop="@dimen/element_spacing_normal"
+        android:textColor="?android:textColorPrimary"
+        tools:text="@string/sample_status_text"
+        android:id="@+id/text"/>
+</RelativeLayout>

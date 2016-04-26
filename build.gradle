@@ -1,5 +1,7 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+import fr.avianey.androidsvgdrawable.gradle.SvgDrawableTask
+
 apply plugin: 'com.android.application'
+apply plugin: 'androidsvgdrawable'
 
 buildscript {
     repositories {
@@ -8,14 +10,17 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:2.0.0'
 
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
+        classpath('fr.avianey.androidsvgdrawable:gradle-plugin:3.0.0') {
+            // should be excluded to avoid conflict
+            exclude group: 'xerces'
+        }
     }
 }
 
 allprojects {
     repositories {
         jcenter()
+        maven { url 'https://jitpack.io/' }
     }
 }
 
@@ -36,10 +41,40 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    sourceSets {
+        main {
+//            res.srcDirs += project.files("src/$name/res-svg2png")
+        }
+    }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.3.0'
+    compile 'com.android.support:recyclerview-v7:23.3.0'
+    compile 'com.android.support:cardview-v7:23.3.0'
+    compile 'com.github.TwidereProject.Twidere-Android:twidere.library.extension:3.1.6'
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+    compile 'com.github.bumptech.glide:okhttp3-integration:1.4.0@aar'
+    compile 'com.squareup.okhttp3:okhttp:3.2.0'
+    compile 'com.makeramen:roundedimageview:2.2.1'
+
+    testCompile 'junit:junit:4.12'
+}
+
+task svgToDrawable(type: SvgDrawableTask) {
+    // specify where to pick SVG from
+    from = files('src/main/svg/drawable')
+    // specify the android res folder
+    to = file('src/main/res')
+    // override files only if necessary
+    overwriteMode = 'ifModified'
+    // let generate PNG for the following densities only
+    targetedDensities = ['hdpi', 'mdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi']
+    // relative path of the file specifying nine patch specs
+    ninePatchConfig = file('src/main/svg/drawable/9patch.json')
+    // output format of the generated resources
+    outputFormat = 'PNG'
+
+    outputType = 'drawable'
 }

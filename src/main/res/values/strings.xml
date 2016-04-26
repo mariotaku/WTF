@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">WTF (Who To Follow)</string>
+    <string name="groups">Groups</string>
+    <string name="listed">Listed</string>
+    <string name="following">Following</string>
+    <string name="followers">Followers</string>
+    <string name="favorites">Favorites</string>
+    <string name="following_you">Following you</string>
+    <string name="just_now">just now</string>
+    <string name="sample_status_text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam faucibus quis purus ac malesuada. Duis id vulputate magna, a eleifend amet.</string>
+
 </resources>
