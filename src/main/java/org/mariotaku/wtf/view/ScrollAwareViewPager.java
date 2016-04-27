@@ -26,11 +26,6 @@ public class ScrollAwareViewPager extends ViewPager implements NestedScrollingCh
     public boolean canScrollVertically(int direction) {
         View view = findScrollingChild(findVisibleChild());
         if (view != null) {
-            if (direction < 0) { // Scrolling up
-                return false;
-            } else { // Scrolling down
-
-            }
             return view.canScrollVertically(direction);
         }
         return false;

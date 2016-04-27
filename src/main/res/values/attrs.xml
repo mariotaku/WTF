@@ -14,6 +14,13 @@
         <attr name="nv_secondaryTextSize" format="dimension"/>
         <attr name="nv_secondaryTextScale" format="fraction"/>
     </declare-styleable>
+    <declare-styleable name="MainSlidingPane">
+        <attr name="maxSlidingUpLength" format="dimension"/>
+        <attr name="maxSlidingDownLength" format="dimension"/>
+    </declare-styleable>
+    <declare-styleable name="MainSlidingPane.LayoutParams">
+        <attr name="layout_isContent" format="boolean"/>
+    </declare-styleable>
     <attr name="nv_primaryTextStyle">
         <flag name="normal" value="0"/>
         <flag name="bold" value="1"/>

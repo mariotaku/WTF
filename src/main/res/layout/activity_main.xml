@@ -6,91 +6,107 @@
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:id="@+id/menu_bar"
+        android:id="@+id/menu_friends_container"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@color/bg_color_info_pane"
-        android:elevation="8dp"
-        android:gravity="center_vertical"
-        android:padding="@dimen/element_spacing_normal">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-        <Spinner
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0"
-            android:entries="@array/user_list_entries_sample"/>
+        <LinearLayout
+            android:id="@+id/menu_bar"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@color/bg_color_info_pane"
+            android:elevation="4dp"
+            android:gravity="center_vertical"
+            android:padding="@dimen/element_spacing_normal">
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"/>
+            <Spinner
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:entries="@array/user_list_entries_sample"/>
 
-        <com.makeramen.roundedimageview.RoundedImageView
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:layout_weight="0"
-            android:src="@drawable/ic_profile_image_sample"
-            app:riv_oval="true"/>
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+
+            <com.makeramen.roundedimageview.RoundedImageView
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_weight="0"
+                android:src="@drawable/ic_profile_image_sample"
+                app:riv_oval="true"/>
+        </LinearLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/users_grid"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:background="@color/bg_color_profile_images_pane"/>
     </LinearLayout>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/users_grid"
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_below="@+id/menu_bar"
-        android:background="@color/bg_color_profile_images_pane"
-        android:clipToPadding="false"
-        android:padding="@dimen/element_spacing_normal"/>
-
-    <FrameLayout
+    <org.mariotaku.wtf.view.MainSlidingPane
+        android:id="@+id/sliding_pane"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
-        android:layout_below="@+id/users_grid"
-        android:background="@color/bg_color_info_pane"
-        android:elevation="8dp">
+        android:layout_alignParentTop="true"
+        app:maxSlidingDownLength="300dp"
+        app:maxSlidingUpLength="56dp">
 
-        <android.support.v4.view.ViewPager
+        <View
+            android:id="@+id/triangle_indicator"
+            android:layout_width="8dp"
+            android:layout_height="56dp"
+            android:elevation="4dp"/>
+
+        <org.mariotaku.wtf.view.ScrollAwareViewPager
             android:id="@+id/info_pager"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="match_parent"
+            android:background="@color/bg_color_info_pane"
+            android:elevation="4dp"
+            app:layout_isContent="true"/>
 
-        <android.support.v7.widget.CardView
+    </org.mariotaku.wtf.view.MainSlidingPane>
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="bottom"
+        android:layout_margin="@dimen/element_spacing_normal"
+        android:background="@android:color/white"
+        app:cardCornerRadius="4dp"
+        app:cardElevation="8dp">
+
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_gravity="bottom"
-            android:layout_margin="@dimen/element_spacing_normal"
-            android:background="@android:color/white"
-            app:cardCornerRadius="4dp"
-            app:cardElevation="4dp">
+            android:layout_height="match_parent">
 
-            <RelativeLayout
+            <ImageButton
+                android:id="@+id/ignore"
+                android:layout_width="48dp"
+                android:layout_height="match_parent"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"/>
+
+            <ImageButton
+                android:id="@+id/follow"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:layout_toEndOf="@+id/ignore"
+                android:layout_toLeftOf="@+id/more_options"
+                android:layout_toRightOf="@+id/ignore"
+                android:layout_toStartOf="@+id/more_options"/>
 
-                <ImageButton
-                    android:id="@+id/ignore"
-                    android:layout_width="48dp"
-                    android:layout_height="match_parent"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true"/>
-
-                <ImageButton
-                    android:id="@+id/follow"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_toEndOf="@+id/ignore"
-                    android:layout_toLeftOf="@+id/more_options"
-                    android:layout_toRightOf="@+id/ignore"
-                    android:layout_toStartOf="@+id/more_options"/>
-
-                <ImageButton
-                    android:id="@+id/more_options"
-                    android:layout_width="48dp"
-                    android:layout_height="match_parent"
-                    android:layout_alignParentEnd="true"
-                    android:layout_alignParentRight="true"/>
-            </RelativeLayout>
-        </android.support.v7.widget.CardView>
-    </FrameLayout>
+            <ImageButton
+                android:id="@+id/more_options"
+                android:layout_width="48dp"
+                android:layout_height="match_parent"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"/>
+        </RelativeLayout>
+    </android.support.v7.widget.CardView>
 </RelativeLayout>

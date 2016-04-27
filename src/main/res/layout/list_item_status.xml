@@ -5,6 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="?selectableItemBackground"
+    android:clickable="true"
     android:padding="@dimen/element_spacing_normal">
 
     <com.makeramen.roundedimageview.RoundedImageView
@@ -42,6 +44,7 @@
         tools:text="just now"/>
 
     <TextView
+        android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/name"
@@ -51,6 +54,5 @@
         android:layout_below="@+id/name"
         android:layout_marginTop="@dimen/element_spacing_normal"
         android:textColor="?android:textColorPrimary"
-        tools:text="@string/sample_status_text"
-        android:id="@+id/text"/>
+        tools:text="@string/sample_status_text"/>
 </RelativeLayout>

@@ -15,9 +15,12 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.bluelinelabs.logansquare.LoganSquare;
+import com.bumptech.glide.Glide;
 
+import org.mariotaku.twidere.api.twitter.model.Status;
+import org.mariotaku.twidere.api.twitter.model.StatusAccessor;
 import org.mariotaku.twidere.api.twitter.model.User;
+import org.mariotaku.wtf.Constants;
 import org.mariotaku.wtf.R;
 import org.mariotaku.wtf.util.DividerItemDecoration;
 import org.mariotaku.wtf.util.UnitConvertUtils;
@@ -25,14 +28,12 @@ import org.mariotaku.wtf.util.Utils;
 import org.mariotaku.wtf.view.NameView;
 import org.mariotaku.wtf.view.ShortTimeView;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Locale;
 
 /**
  * Created by mariotaku on 16/4/26.
  */
-public class UserInfoFragment extends Fragment {
+public class UserInfoFragment extends Fragment implements Constants {
 
     private RecyclerView mRecyclerView;
     private ProgressBar mLoadProgress;
@@ -48,6 +49,8 @@ public class UserInfoFragment extends Fragment {
         mInfoAdapter = new UserInfoAdapter(getContext());
         mRecyclerView.setAdapter(mInfoAdapter);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getContext(), LinearLayoutManager.VERTICAL));
+        final User user = getArguments().getParcelable(EXTRA_USER);
+        mInfoAdapter.setUser(user);
     }
 
     @Nullable
@@ -67,6 +70,7 @@ public class UserInfoFragment extends Fragment {
         private static final int VIEW_TYPE_USER_INFO = 1;
         private static final int VIEW_TYPE_STATUS = 2;
         private final LayoutInflater mInflater;
+        private User mUser;
 
         UserInfoAdapter(Context context) {
             mInflater = LayoutInflater.from(context);
@@ -92,11 +96,13 @@ public class UserInfoFragment extends Fragment {
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             switch (getItemViewType(position)) {
                 case VIEW_TYPE_USER_INFO: {
-                    ((UserInfoViewHolder) holder).displaySample();
+                    ((UserInfoViewHolder) holder).displayUser(mUser);
                     break;
                 }
                 case VIEW_TYPE_STATUS: {
-                    ((StatusViewHolder) holder).displaySample();
+                    final Status status = mUser.getStatus();
+                    StatusAccessor.setUser(status, mUser);
+                    ((StatusViewHolder) holder).displayStatus(status);
                     break;
                 }
             }
@@ -113,7 +119,18 @@ public class UserInfoFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            return 5;
+            if (mUser == null) {
+                return 0;
+            }
+            if (mUser.getStatus() == null) {
+                return 1;
+            }
+            return 11;
+        }
+
+        public void setUser(User user) {
+            mUser = user;
+            notifyDataSetChanged();
         }
     }
 
@@ -151,13 +168,18 @@ public class UserInfoFragment extends Fragment {
         }
 
         public void displayUser(User user) {
-            profileImageView.setImageResource(R.drawable.ic_profile_image_sample);
+            final Context context = itemView.getContext();
+            Glide.with(context)
+                    .load(user.getProfileImageUrl())
+                    .dontAnimate()
+                    .placeholder(R.color.bg_color_info_pane)
+                    .into(profileImageView);
             nameView.setText(user.getName());
             screenNameView.setText(String.format(Locale.US, "@%s", user.getScreenName()));
             descriptionView.setText(user.getDescription());
+            descriptionView.setVisibility(TextUtils.isEmpty(user.getDescription()) ? View.GONE : View.VISIBLE);
             locationView.setText(user.getLocation());
             urlView.setText(user.getUrl());
-            final Context context = itemView.getContext();
             final Resources resources = context.getResources();
             createdAtView.setText(Utils.formatSameDayTime(context, user.getCreatedAt().getTime()));
 
@@ -177,16 +199,6 @@ public class UserInfoFragment extends Fragment {
                     (int) user.getStatusesCount(), UnitConvertUtils.calculateProperCount(user.getStatusesCount())));
         }
 
-        public void displaySample() {
-            final InputStream is = itemView.getResources().openRawResource(R.raw.user_bearkani);
-            try {
-                User user = LoganSquare.parse(is, User.class);
-                displayUser(user);
-            } catch (IOException e) {
-            } finally {
-                Utils.closeSilently(is);
-            }
-        }
     }
 
     static class StatusViewHolder extends RecyclerView.ViewHolder {
@@ -211,6 +223,21 @@ public class UserInfoFragment extends Fragment {
             nameView.updateText();
             textView.setText(R.string.sample_status_text);
             timeView.setTime(System.currentTimeMillis());
+        }
+
+        public void displayStatus(Status status) {
+            final User user = status.getUser();
+            final Context context = itemView.getContext();
+            Glide.with(context)
+                    .load(user.getProfileImageUrl())
+                    .dontAnimate()
+                    .placeholder(R.color.bg_color_info_pane)
+                    .into(profileImageView);
+            nameView.setName(user.getName());
+            nameView.setScreenName("@" + user.getScreenName());
+            nameView.updateText();
+            textView.setText(status.getText());
+            timeView.setTime(status.getCreatedAt().getTime());
         }
     }
 }
