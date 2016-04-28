@@ -1,4 +1,5 @@
-<resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">WTF (Who To Follow)</string>
     <string name="groups">Groups</string>
     <string name="listed">Listed</string>
@@ -8,5 +9,8 @@
     <string name="following_you">Following you</string>
     <string name="just_now">just now</string>
     <string name="sample_status_text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam faucibus quis purus ac malesuada. Duis id vulputate magna, a eleifend amet.</string>
+    <string name="login">Login</string>
+    <string name="launcher_label">WTF</string>
+    <string name="retweeted_by_name">Retweeted by <xliff:g id="name">%s</xliff:g></string>
 
 </resources>

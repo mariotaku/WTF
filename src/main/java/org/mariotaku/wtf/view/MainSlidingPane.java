@@ -300,6 +300,13 @@ public class MainSlidingPane extends ViewGroup {
         mScrollListener = scrollListener;
     }
 
+    public void scrollToDefault() {
+        final View content = getContent();
+        LayoutParams lp = (LayoutParams) content.getLayoutParams();
+        mDragHelper.smoothSlideViewTo(content, 0, lp.getDefaultTop());
+        ViewCompat.postInvalidateOnAnimation(this);
+    }
+
     public interface ScrollListener {
         void onScroll(int currentTop, int defaultTop);
     }

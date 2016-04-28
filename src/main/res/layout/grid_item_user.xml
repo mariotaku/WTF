@@ -10,6 +10,8 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_gravity="center"
+        android:background="?selectableItemBackgroundBorderless"
+        android:clickable="true"
         app:riv_oval="true"/>
 
 </FrameLayout>

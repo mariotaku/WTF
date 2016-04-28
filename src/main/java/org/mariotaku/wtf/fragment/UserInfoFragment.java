@@ -1,10 +1,15 @@
 package org.mariotaku.wtf.fragment;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -17,23 +22,27 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
+import org.mariotaku.twidere.Twidere;
 import org.mariotaku.twidere.api.twitter.model.Status;
-import org.mariotaku.twidere.api.twitter.model.StatusAccessor;
 import org.mariotaku.twidere.api.twitter.model.User;
+import org.mariotaku.twidere.model.ParcelableCredentials;
 import org.mariotaku.wtf.Constants;
 import org.mariotaku.wtf.R;
+import org.mariotaku.wtf.loader.TimelineLoader;
 import org.mariotaku.wtf.util.DividerItemDecoration;
 import org.mariotaku.wtf.util.UnitConvertUtils;
 import org.mariotaku.wtf.util.Utils;
 import org.mariotaku.wtf.view.NameView;
 import org.mariotaku.wtf.view.ShortTimeView;
 
+import java.util.List;
 import java.util.Locale;
 
 /**
  * Created by mariotaku on 16/4/26.
  */
-public class UserInfoFragment extends Fragment implements Constants {
+public class UserInfoFragment extends Fragment implements Constants,
+        LoaderManager.LoaderCallbacks<List<Status>> {
 
     private RecyclerView mRecyclerView;
     private ProgressBar mLoadProgress;
@@ -43,14 +52,18 @@ public class UserInfoFragment extends Fragment implements Constants {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        final Bundle args = getArguments();
+        final User user = args.getParcelable(EXTRA_USER);
+        final ParcelableCredentials account = args.getParcelable(EXTRA_ACCOUNT);
         final LinearLayoutManager layout = new LinearLayoutManager(getContext());
         layout.setOrientation(LinearLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(layout);
-        mInfoAdapter = new UserInfoAdapter(getContext());
+        mInfoAdapter = new UserInfoAdapter(getContext(), account);
         mRecyclerView.setAdapter(mInfoAdapter);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(getContext(), LinearLayoutManager.VERTICAL));
-        final User user = getArguments().getParcelable(EXTRA_USER);
+
         mInfoAdapter.setUser(user);
+        getLoaderManager().initLoader(0, args, this);
     }
 
     @Nullable
@@ -66,14 +79,34 @@ public class UserInfoFragment extends Fragment implements Constants {
         mLoadProgress = (ProgressBar) view.findViewById(R.id.load_progress);
     }
 
+    @Override
+    public Loader<List<Status>> onCreateLoader(int id, Bundle args) {
+        final User user = args.getParcelable(EXTRA_USER);
+        final ParcelableCredentials account = args.getParcelable(EXTRA_ACCOUNT);
+        return new TimelineLoader(getContext(), account, user);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List<Status>> loader, List<Status> data) {
+        mInfoAdapter.setStatuses(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<List<Status>> loader) {
+        mInfoAdapter.setStatuses(null);
+    }
+
     static class UserInfoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         private static final int VIEW_TYPE_USER_INFO = 1;
         private static final int VIEW_TYPE_STATUS = 2;
         private final LayoutInflater mInflater;
+        private final ParcelableCredentials mAccount;
         private User mUser;
+        private List<Status> mStatuses;
 
-        UserInfoAdapter(Context context) {
+        UserInfoAdapter(Context context, ParcelableCredentials account) {
             mInflater = LayoutInflater.from(context);
+            mAccount = account;
         }
 
         @Override
@@ -86,7 +119,7 @@ public class UserInfoFragment extends Fragment implements Constants {
                 }
                 case VIEW_TYPE_STATUS: {
                     final View view = mInflater.inflate(R.layout.list_item_status, parent, false);
-                    return new StatusViewHolder(view);
+                    return new StatusViewHolder(view, this);
                 }
             }
             throw new UnsupportedOperationException();
@@ -100,9 +133,7 @@ public class UserInfoFragment extends Fragment implements Constants {
                     break;
                 }
                 case VIEW_TYPE_STATUS: {
-                    final Status status = mUser.getStatus();
-                    StatusAccessor.setUser(status, mUser);
-                    ((StatusViewHolder) holder).displayStatus(status);
+                    ((StatusViewHolder) holder).displayStatus(getStatus(position));
                     break;
                 }
             }
@@ -122,15 +153,29 @@ public class UserInfoFragment extends Fragment implements Constants {
             if (mUser == null) {
                 return 0;
             }
-            if (mUser.getStatus() == null) {
+            if (mStatuses == null) {
                 return 1;
             }
-            return 11;
+            return mStatuses.size() + 1;
         }
 
-        public void setUser(User user) {
+        public void setUser(@Nullable User user) {
             mUser = user;
             notifyDataSetChanged();
+        }
+
+        public void setStatuses(List<Status> statuses) {
+            mStatuses = statuses;
+            notifyDataSetChanged();
+        }
+
+        public Status getStatus(int position) {
+            if (position == 0) return null;
+            return mStatuses.get(position - 1);
+        }
+
+        public ParcelableCredentials getAccount() {
+            return mAccount;
         }
     }
 
@@ -207,37 +252,58 @@ public class UserInfoFragment extends Fragment implements Constants {
         private final NameView nameView;
         private final ShortTimeView timeView;
         private final TextView textView;
+        private final TextView retweetIndicator;
 
-        public StatusViewHolder(View itemView) {
+        public StatusViewHolder(final View itemView, final UserInfoAdapter adapter) {
             super(itemView);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final ParcelableCredentials account = adapter.getAccount();
+                    final Status status = adapter.getStatus(getLayoutPosition());
+                    Uri link = Utils.getStatusWebLink(status, account.account_type);
+                    final Context context = itemView.getContext();
+                    final Intent intent = new Intent(Intent.ACTION_VIEW, link);
+                    intent.addCategory(Intent.CATEGORY_BROWSABLE);
+                    ComponentName name = intent.resolveActivity(context.getPackageManager());
+                    if (name != null && TextUtils.equals(Twidere.TWIDERE_PACKAGE_NAME, name.getPackageName())) {
+                        intent.putExtra(Twidere.EXTRA_ACCOUNT_KEY, account.account_key);
+                    }
+                    context.startActivity(intent);
+                }
+            });
             profileImageView = (ImageView) itemView.findViewById(R.id.profile_image);
             nameView = (NameView) itemView.findViewById(R.id.name);
             timeView = (ShortTimeView) itemView.findViewById(R.id.time);
             textView = (TextView) itemView.findViewById(R.id.text);
-        }
-
-        public void displaySample() {
-            profileImageView.setImageResource(R.drawable.ic_profile_image_sample);
-            nameView.setName("kani 11/100");
-            nameView.setScreenName("@baerkani");
-            nameView.updateText();
-            textView.setText(R.string.sample_status_text);
-            timeView.setTime(System.currentTimeMillis());
+            retweetIndicator = (TextView) itemView.findViewById(R.id.retweet_indicator);
         }
 
         public void displayStatus(Status status) {
             final User user = status.getUser();
+
+            Status displaying = status;
+            if (status.isRetweet()) {
+                displaying = status.getRetweetedStatus();
+                retweetIndicator.setText(itemView.getContext().getString(R.string.retweeted_by_name,
+                        user.getName()));
+                retweetIndicator.setVisibility(View.VISIBLE);
+            } else {
+                retweetIndicator.setVisibility(View.GONE);
+            }
+
             final Context context = itemView.getContext();
             Glide.with(context)
-                    .load(user.getProfileImageUrl())
+                    .load(displaying.getUser().getProfileImageUrl())
                     .dontAnimate()
                     .placeholder(R.color.bg_color_info_pane)
                     .into(profileImageView);
-            nameView.setName(user.getName());
-            nameView.setScreenName("@" + user.getScreenName());
+            nameView.setName(displaying.getUser().getName());
+            nameView.setScreenName("@" + displaying.getUser().getScreenName());
             nameView.updateText();
-            textView.setText(status.getText());
-            timeView.setTime(status.getCreatedAt().getTime());
+            textView.setText(displaying.getText());
+            timeView.setTime(displaying.getCreatedAt().getTime());
+
         }
     }
 }

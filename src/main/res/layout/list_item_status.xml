@@ -9,10 +9,26 @@
     android:clickable="true"
     android:padding="@dimen/element_spacing_normal">
 
+    <TextView
+        android:id="@+id/retweet_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/element_spacing_normal"
+        android:layout_marginLeft="@dimen/element_spacing_normal"
+        android:layout_marginStart="@dimen/element_spacing_normal"
+        android:layout_toEndOf="@+id/profile_image"
+        android:layout_toRightOf="@+id/profile_image"
+        android:singleLine="true"
+        android:textAppearance="?android:textAppearanceSmall"
+        android:textColor="?android:textColorSecondary"
+        android:textStyle="italic"
+        tools:text="Retweeted by @baerkani"/>
+
     <com.makeramen.roundedimageview.RoundedImageView
         android:id="@+id/profile_image"
         android:layout_width="42dp"
         android:layout_height="42dp"
+        android:layout_below="@+id/retweet_indicator"
         app:riv_oval="true"
         tools:src="@drawable/ic_profile_image_sample"/>
 
@@ -20,6 +36,7 @@
         android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/retweet_indicator"
         android:layout_marginLeft="@dimen/element_spacing_normal"
         android:layout_marginStart="@dimen/element_spacing_normal"
         android:layout_toEndOf="@+id/profile_image"
@@ -55,4 +72,5 @@
         android:layout_marginTop="@dimen/element_spacing_normal"
         android:textColor="?android:textColorPrimary"
         tools:text="@string/sample_status_text"/>
+
 </RelativeLayout>

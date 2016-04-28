@@ -5,4 +5,6 @@ package org.mariotaku.wtf;
  */
 public interface Constants {
     String EXTRA_USER = "user";
+    String EXTRA_ACCOUNT = "account";
+    String KEY_ACCOUNT = "account";
 }
