@@ -14,6 +14,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.ViewDragHelper;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -33,6 +34,8 @@ import org.mariotaku.wtf.R;
 import org.mariotaku.wtf.fragment.UserInfoFragment;
 import org.mariotaku.wtf.graphic.drawable.TriangleDrawable;
 import org.mariotaku.wtf.loader.TestUsersLoader;
+import org.mariotaku.wtf.util.ExtendedGridLayoutManager;
+import org.mariotaku.wtf.util.MathUtils;
 import org.mariotaku.wtf.util.ViewSupport;
 import org.mariotaku.wtf.view.MainSlidingPane;
 
@@ -49,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements Constants,
     private MainSlidingPane mSlidingPane;
     private View mMenuFriendsContainer;
     private View mMenuBar;
+    private View mButtonsBar;
     private View mTriangleIndicator;
     private ImageView mAccountProfileImageView;
 
@@ -76,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements Constants,
         setContentView(R.layout.activity_main);
         mPagerAdapter = new UserPagesAdapter(this, mAccount, getSupportFragmentManager());
         mViewPager.setAdapter(mPagerAdapter);
-        final GridLayoutManager layout = new GridLayoutManager(this, 6, GridLayoutManager.VERTICAL, false);
+        final ExtendedGridLayoutManager layout = new ExtendedGridLayoutManager(this, 6, GridLayoutManager.VERTICAL, false);
         mUsersGrid.setLayoutManager(layout);
         mUsersAdapter = new UsersAdapter(this);
         mUsersAdapter.setItemClickListener(new UsersAdapter.OnItemClickListener() {
@@ -94,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements Constants,
         drawable.setTriangleColor(ContextCompat.getColor(this, R.color.bg_color_info_pane));
 
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            float mItemHeight = Float.NaN;
 
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -103,9 +108,20 @@ public class MainActivity extends AppCompatActivity implements Constants,
                 int spanWidth = gridsWidth / spanCount;
                 final float colOffset = colPosition + positionOffset;
                 if (colOffset > spanCount - 1) {
-                    mTriangleIndicator.setTranslationX(spanWidth / 2 + (gridsWidth - spanWidth) * (1 - positionOffset) - mTriangleIndicator.getWidth() / 2);
+                    mTriangleIndicator.setTranslationX(spanWidth / 2 + (gridsWidth - spanWidth) *
+                            (1 - positionOffset) - mTriangleIndicator.getWidth() / 2);
+                    int offset = 0;
+                    if (!Float.isNaN(mItemHeight)) {
+                        offset = Math.round((1 - positionOffset) * mItemHeight);
+                    }
+                    if (mSlidingPane.getDragState() == ViewDragHelper.STATE_IDLE) {
+                        layout.scrollToPositionWithOffset(position + 1, offset);
+                    }
                 } else {
                     mTriangleIndicator.setTranslationX(colOffset * spanWidth + spanWidth / 2 - mTriangleIndicator.getWidth() / 2);
+                    if (mSlidingPane.getDragState() == ViewDragHelper.STATE_IDLE) {
+                        layout.scrollToPositionWithOffset(position, 0);
+                    }
                 }
             }
 
@@ -115,20 +131,49 @@ public class MainActivity extends AppCompatActivity implements Constants,
 
             @Override
             public void onPageScrollStateChanged(int state) {
+                if (state == ViewPager.SCROLL_STATE_IDLE) {
+                    mItemHeight = Float.NaN;
+                } else if (Float.isNaN(mItemHeight)) {
+                    View firstVisibleView = layout.findViewByPosition(layout.findFirstVisibleItemPosition());
+                    if (firstVisibleView != null) {
+                        mItemHeight = firstVisibleView.getHeight();
+                    }
+                }
 
             }
         });
 
         mSlidingPane.setScrollListener(new MainSlidingPane.ScrollListener() {
             @Override
-            public void onScroll(int currentTop, int defaultTop) {
-                if (currentTop < defaultTop) {
+            public void onScroll(int currentTop, int defaultTop, int delta) {
+                if (currentTop < defaultTop) { // Position up
                     mTriangleIndicator.setTranslationY(Math.max((defaultTop - currentTop) / 2,
                             -drawable.getTriangleHeight()));
-                } else {
+                    final int barHeight = getButtonBarHeight();
+                    final int fullBarOffset = Math.min(barHeight, mSlidingPane.getMaxSlidingDownLength());
+                    if (fullBarOffset > 0) {
+                        float ratio = (defaultTop - currentTop) / (float) fullBarOffset;
+                        mButtonsBar.setTranslationY(MathUtils.clamp(ratio, 0f, 1f) * barHeight);
+                    }
+                } else { // Position down
                     mMenuFriendsContainer.setTranslationY(Math.min(currentTop - defaultTop - mMenuBar.getHeight(), 0));
                     mTriangleIndicator.setTranslationY(Math.max((currentTop - defaultTop) / 2,
                             -drawable.getTriangleHeight()));
+                    final int barHeight = getButtonBarHeight();
+                    final int fullBarOffset = Math.min(barHeight, mSlidingPane.getMaxSlidingDownLength());
+                    if (fullBarOffset > 0) {
+                        float ratio = (currentTop - defaultTop) / (float) fullBarOffset;
+                        mButtonsBar.setTranslationY(MathUtils.clamp(ratio, 0f, 1f) * barHeight);
+                    }
+                }
+            }
+
+            @Override
+            public void onDragStateChanged(int state) {
+                if (state == ViewDragHelper.STATE_SETTLING) {
+                    layout.smoothScrollToPosition(mUsersGrid, null, mViewPager.getCurrentItem());
+                } else if (state == ViewDragHelper.STATE_IDLE) {
+                    layout.setVerticalScrollEnabled(mSlidingPane.isScrolledDown());
                 }
             }
         });
@@ -141,6 +186,11 @@ public class MainActivity extends AppCompatActivity implements Constants,
                 .into(mAccountProfileImageView);
     }
 
+    private int getButtonBarHeight() {
+        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) mButtonsBar.getLayoutParams();
+        return mButtonsBar.getHeight() + lp.bottomMargin + lp.topMargin;
+    }
+
     @Override
     public void onContentChanged() {
         super.onContentChanged();
@@ -149,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements Constants,
         mSlidingPane = (MainSlidingPane) findViewById(R.id.sliding_pane);
         mMenuFriendsContainer = findViewById(R.id.menu_friends_container);
         mMenuBar = findViewById(R.id.menu_bar);
+        mButtonsBar = findViewById(R.id.buttons_bar);
         mTriangleIndicator = findViewById(R.id.triangle_indicator);
         mAccountProfileImageView = (ImageView) mMenuBar.findViewById(R.id.profile_image);
     }

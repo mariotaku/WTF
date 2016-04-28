@@ -82,6 +82,7 @@
         android:layout_height="48dp"
         android:layout_alignParentBottom="true"
         android:layout_gravity="bottom"
+        android:id="@+id/buttons_bar"
         android:layout_margin="@dimen/element_spacing_normal"
         android:background="@android:color/white"
         app:cardCornerRadius="4dp"

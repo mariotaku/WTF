@@ -21,7 +21,9 @@ import org.mariotaku.wtf.R;
 public class MainSlidingPane extends ViewGroup {
 
     int mScrollOffset = 0;
+    int mPrevScrollOffset = 0;
     PointF mTouchCoord = new PointF(Float.NaN, Float.NaN);
+    PointF mFirstDownCoord = new PointF(Float.NaN, Float.NaN);
     private int mMaxSlidingUpLength;
     private int mMaxSlidingDownLength;
     ViewDragHelper mDragHelper = ViewDragHelper.create(this, new ViewDragHelper.Callback() {
@@ -44,6 +46,13 @@ public class MainSlidingPane extends ViewGroup {
         public void onViewCaptured(View capturedChild, int activePointerId) {
             if (capturedChild instanceof ViewGroup) {
                 ((ViewGroup) capturedChild).requestDisallowInterceptTouchEvent(true);
+            }
+        }
+
+        @Override
+        public void onViewDragStateChanged(int state) {
+            if (mScrollListener != null) {
+                mScrollListener.onDragStateChanged(state);
             }
         }
 
@@ -145,10 +154,11 @@ public class MainSlidingPane extends ViewGroup {
                 mDragHelper.cancel();
                 ViewDragHelperAccessor.setDragState(mDragHelper, ViewDragHelper.STATE_IDLE);
                 mDragHelper.shouldInterceptTouchEvent(ev);
+                mFirstDownCoord.set(x, y);
                 break;
             }
             case MotionEvent.ACTION_MOVE: {
-                float dx = x - mTouchCoord.x, dy = y - mTouchCoord.y;
+                float dx = x - mFirstDownCoord.x, dy = y - mFirstDownCoord.y;
                 if (Math.abs(dx) > Math.abs(dy)) { // Scrolling horizontally
                     if (isScrolledDown()) {
                         return true;
@@ -169,24 +179,24 @@ public class MainSlidingPane extends ViewGroup {
                             mScrollingContent = true;
                             requestDisallowInterceptTouchEvent(true);
                         } else {
-                            mDragHelper.shouldInterceptTouchEvent(ev);
-                            return true;
+                            return mDragHelper.shouldInterceptTouchEvent(ev);
                         }
                     }
                 } else {
                     // Can only move content panel
-                    mDragHelper.shouldInterceptTouchEvent(ev);
-                    return true;
+                    return mDragHelper.shouldInterceptTouchEvent(ev);
                 }
                 break;
             }
             case MotionEvent.ACTION_CANCEL: {
                 mTouchCoord.set(Float.NaN, Float.NaN);
+                mFirstDownCoord.set(Float.NaN, Float.NaN);
                 requestDisallowInterceptTouchEvent(false);
                 break;
             }
             case MotionEvent.ACTION_UP: {
                 mTouchCoord.set(Float.NaN, Float.NaN);
+                mFirstDownCoord.set(Float.NaN, Float.NaN);
                 requestDisallowInterceptTouchEvent(false);
                 break;
             }
@@ -211,7 +221,8 @@ public class MainSlidingPane extends ViewGroup {
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         int noScrollTop = getPaddingTop(), nextTop = noScrollTop + mScrollOffset;
         if (mScrollListener != null) {
-            mScrollListener.onScroll(nextTop, noScrollTop);
+            mScrollListener.onScroll(nextTop, noScrollTop, mScrollOffset - mPrevScrollOffset);
+            mPrevScrollOffset = mScrollOffset;
         }
         int left = getPaddingLeft();
         for (int i = 0, j = getChildCount(); i < j; i++) {
@@ -258,6 +269,10 @@ public class MainSlidingPane extends ViewGroup {
         setMaxSlidingUpLength(a.getDimensionPixelSize(R.styleable.MainSlidingPane_maxSlidingUpLength, 0));
         setMaxSlidingDownLength(a.getDimensionPixelSize(R.styleable.MainSlidingPane_maxSlidingDownLength, 0));
         a.recycle();
+    }
+
+    public int getDragState() {
+        return mDragHelper.getViewDragState();
     }
 
     public void setMaxSlidingUpLength(int maxSlidingUpLength) {
@@ -308,7 +323,9 @@ public class MainSlidingPane extends ViewGroup {
     }
 
     public interface ScrollListener {
-        void onScroll(int currentTop, int defaultTop);
+        void onScroll(int currentTop, int defaultTop, int delta);
+
+        void onDragStateChanged(int state);
     }
 
     public static class LayoutParams extends ViewGroup.LayoutParams {
