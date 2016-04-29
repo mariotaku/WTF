@@ -159,7 +159,12 @@ public class MainSlidingPane extends ViewGroup {
             }
             case MotionEvent.ACTION_MOVE: {
                 float dx = x - mFirstDownCoord.x, dy = y - mFirstDownCoord.y;
-                if (Math.abs(dx) > Math.abs(dy)) { // Scrolling horizontally
+                if (getDragState() == ViewDragHelper.STATE_SETTLING) {
+                    if (mDragHelper.shouldInterceptTouchEvent(ev)) {
+                        return true;
+                    }
+                    return super.onInterceptTouchEvent(ev);
+                } else if (Math.abs(dx) > Math.abs(dy)) { // Scrolling horizontally
                     if (isScrolledDown()) {
                         return true;
                     } else {
@@ -179,12 +184,18 @@ public class MainSlidingPane extends ViewGroup {
                             mScrollingContent = true;
                             requestDisallowInterceptTouchEvent(true);
                         } else {
-                            return mDragHelper.shouldInterceptTouchEvent(ev);
+                            if (mDragHelper.shouldInterceptTouchEvent(ev)) {
+                                return true;
+                            }
+                            return super.onInterceptTouchEvent(ev);
                         }
                     }
                 } else {
                     // Can only move content panel
-                    return mDragHelper.shouldInterceptTouchEvent(ev);
+                    if (mDragHelper.shouldInterceptTouchEvent(ev)) {
+                        return true;
+                    }
+                    return super.onInterceptTouchEvent(ev);
                 }
                 break;
             }

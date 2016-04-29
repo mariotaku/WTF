@@ -12,5 +12,6 @@
     <string name="login">Login</string>
     <string name="launcher_label">WTF</string>
     <string name="retweeted_by_name">Retweeted by <xliff:g id="name">%s</xliff:g></string>
+    <string name="follow">Follow</string>
 
 </resources>

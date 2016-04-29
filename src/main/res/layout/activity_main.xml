@@ -65,7 +65,8 @@
             android:id="@+id/triangle_indicator"
             android:layout_width="8dp"
             android:layout_height="56dp"
-            android:elevation="4dp"/>
+            android:elevation="4dp"
+            tools:visibility="gone"/>
 
         <org.mariotaku.wtf.view.ScrollAwareViewPager
             android:id="@+id/info_pager"
@@ -78,11 +79,11 @@
     </org.mariotaku.wtf.view.MainSlidingPane>
 
     <android.support.v7.widget.CardView
+        android:id="@+id/buttons_bar"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_alignParentBottom="true"
         android:layout_gravity="bottom"
-        android:id="@+id/buttons_bar"
         android:layout_margin="@dimen/element_spacing_normal"
         android:background="@android:color/white"
         app:cardCornerRadius="4dp"
@@ -92,28 +93,36 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <ImageButton
+            <org.mariotaku.wtf.view.ColorFilterImageButton
                 android:id="@+id/ignore"
+                style="?borderlessButtonStyle"
                 android:layout_width="48dp"
                 android:layout_height="match_parent"
                 android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"/>
+                android:layout_alignParentStart="true"
+                android:src="@drawable/ic_action_cancel"
+                app:colorFilter="?android:textColorPrimary"/>
 
-            <ImageButton
+            <Button
                 android:id="@+id/follow"
+                style="?borderlessButtonStyle"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_toEndOf="@+id/ignore"
                 android:layout_toLeftOf="@+id/more_options"
                 android:layout_toRightOf="@+id/ignore"
-                android:layout_toStartOf="@+id/more_options"/>
+                android:layout_toStartOf="@+id/more_options"
+                android:text="@string/follow"/>
 
-            <ImageButton
+            <org.mariotaku.wtf.view.ColorFilterImageButton
                 android:id="@+id/more_options"
+                style="?borderlessButtonStyle"
                 android:layout_width="48dp"
                 android:layout_height="match_parent"
                 android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"/>
+                android:layout_alignParentRight="true"
+                android:src="@drawable/ic_action_more_vertical"
+                app:colorFilter="?android:textColorPrimary"/>
         </RelativeLayout>
     </android.support.v7.widget.CardView>
 </RelativeLayout>
